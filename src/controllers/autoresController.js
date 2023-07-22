@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import autores from "../models/Autor.js";
 
 class AutorController {
@@ -11,13 +12,24 @@ class AutorController {
   };
 
   static listarAutorPorId = async (req, res) => {
-    const id = req.params.id;
-
     try {
+      const id = req.params.id;
+
       const autor = await autores.findById(id);
-      res.status(200).send(autor.toJSON());
+
+      if (autor !== null) {
+        res.status(200).send(autor.toJSON());
+      } else {
+        res.status(404).send({ message: "Id do autor não encontrado." });
+      }
     } catch (err) {
-      res.status(400).send({ message: `${err.message} - ID não encontrado` });
+      if (err instanceof mongoose.Error.CastError) {
+        res
+          .status(400)
+          .send({ message: "Um ou mais dados fornecidos estão incorretos." });
+      } else {
+        res.status(500).send({ message: `${err} - Erro interno de servidor.` });
+      }
     }
   };
 
@@ -29,7 +41,7 @@ class AutorController {
     } catch (error) {
       res
         .status(501)
-        .send({ message: `${error.message} - erro ao cadastrar autor` });
+        .send({ message: `${error.message} - Erro ao cadastrar autor` });
     }
   };
 
@@ -37,9 +49,7 @@ class AutorController {
     const id = req.params.id;
     try {
       await autores.findByIdAndUpdate(id, { $set: req.body });
-      res
-        .status(200)
-        .send({ message: "Autor atualizado com sucesso!" });
+      res.status(200).send({ message: "Autor atualizado com sucesso!" });
     } catch (err) {
       res.status(500).send({ message: err.message });
     }
@@ -50,13 +60,11 @@ class AutorController {
 
     try {
       await autores.findByIdAndDelete(id);
-      res
-        .status(200)
-        .send({ message: "Autor removido com sucesso!" });
+      res.status(200).send({ message: "Autor removido com sucesso!" });
     } catch (err) {
       res.status(500).send({ message: err.message });
     }
-  }
+  };
 }
 
 export default AutorController;
