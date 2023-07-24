@@ -4,8 +4,11 @@ import NaoEncontrado from "../errors/NaoEncontrado.js";
 class LivroController {
   static listarLivros = async (req, res, next) => {
     try {
-      const data = await livros.find().populate("autor").exec();
-      res.status(200).json(data);
+      const buscaLivros = livros.find();
+
+      req.resultado = buscaLivros;
+
+      next();
     } catch (err) {
       next(err);
     }
@@ -15,7 +18,7 @@ class LivroController {
     const id = req.params.id;
 
     try {
-      const livro = await livros.findById(id).populate("autor", "nome").exec();
+      const livro = await livros.findById(id);
 
       if (livro !== null) {
         res.status(200).send(livro.toJSON());
@@ -32,11 +35,11 @@ class LivroController {
       const busca = await processaBusca(req.query);
 
       if (busca !== null) {
-        const livrosResultado = await livros.find(busca).populate("autor");
+        const livrosResultado = livros.find(busca);
 
-        if (livrosResultado !== null) {
-          res.status(200).json(livrosResultado);
-        }
+        req.resultado = livrosResultado;
+        
+        next();
       } else {
         res.status(200).send([]);
       }
